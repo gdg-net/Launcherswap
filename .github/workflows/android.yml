@@ -12,11 +12,16 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v4
 
-    - name: Install unzip tool
-      run: sudo apt-get install unzip
+    - name: Unzip project
+      run: |
+        unzip LauncherSwap_AdvancedSource.zip
+        unzip -l LauncherSwap_AdvancedSource.zip
 
-    - name: Unzip project into folder
-      run: unzip LauncherSwap_AdvancedSource.zip -d LauncherSwap
+    - name: Find gradlew and set permissions
+      run: |
+        GRADLEW=$(find . -type f -name gradlew)
+        echo "Found gradlew at: $GRADLEW"
+        chmod +x "$GRADLEW"
 
     - name: Set up JDK
       uses: actions/setup-java@v4
@@ -24,14 +29,14 @@ jobs:
         distribution: 'temurin'
         java-version: 17
 
-    - name: Grant permission to Gradle wrapper
-      run: chmod +x LauncherSwap/gradlew
-
     - name: Build APK
-      run: cd LauncherSwap && ./gradlew assembleDebug
+      run: |
+        PROJECT_DIR=$(find . -type f -name gradlew | xargs dirname)
+        cd "$PROJECT_DIR"
+        ./gradlew assembleDebug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: LauncherSwap-APK
-        path: LauncherSwap/app/build/outputs/apk/debug/*.apk
+        path: "**/build/outputs/apk/debug/*.apk"
